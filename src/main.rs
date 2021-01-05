@@ -1,5 +1,5 @@
 extern crate clap;
-use std::process::Command;
+use std::{process::Command, vec};
 
 use clap::{Arg, App, SubCommand};
 
@@ -66,8 +66,7 @@ fn main() {
         .output()
         // .spawn()
         .expect("exec command netstat error");
-    let output_str = std::str::from_utf8((&res.stdout[..])).unwrap_or("");
-    let list: Vec<_> = output_str.split("\r\n").collect();
+    let mut list = split_output(&res.stdout);
     // 能否做到按多字节对字节切片进行分割呢？
     // let list: Vec<_> = (&res.stdout[..])
     //     .split(|c| *c == '\n' as u8)
@@ -75,13 +74,48 @@ fn main() {
     //     .collect();
     // println!("\n{:?}", std::str::from_utf8(&res.stdout[..]));
     // todo 为了更友好，先显示一个头部，表示每一列的意义。
+    let header_line = get_netstat_header_line();
+    vec![&*header_line].append(&mut list);
     for one in list {
         println!("{:?}", one);
     }
+    // get_process_info(6532);
 }
 
 /// 显示进程信息 todo
-/// tasklist |findstr "进程id号"
+/// tasklist | findstr "进程id号"
 fn get_process_info(pid: u32) {
+    let pid_str = pid.to_string();
+    let res = Command::new("powershell")
+        .args(&["tasklist", "|", "findstr", &pid_str])
+        .output()
+        .expect("exec tasklist error. ");
+    let output_str_list = split_output(&res.stdout);
+    println!("{:?}", output_str_list);
+}
 
+/// 将一行一行的输出结果转换为字符串列表
+fn split_output(output_slice: &[u8]) -> Vec<&str> {
+    let result: Vec<&str> = vec![];
+    let output_str = std::str::from_utf8(output_slice).unwrap_or("");
+    let list: Vec<_> = output_str.split("\r\n").filter(|s| s.len() > 0 ).collect();
+    return list;
+}
+
+/// 显示 netstat -ano 命令后的头部
+/// 头部：协议  本地地址          外部地址        状态           模板
+fn get_netstat_header_line() ->String {
+    let header_name_list = get_netstat_header_name_list();
+    return header_name_list.join("\t");
+}
+
+fn get_netstat_header_name_list() ->Vec<&'static str> {
+    let header_name_list = vec![
+        "协议",
+        "本地地址",
+        "外部地址",
+        "状态",
+        "模板",
+    ];
+    return header_name_list;
 }
