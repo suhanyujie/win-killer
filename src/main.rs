@@ -75,10 +75,18 @@ fn main() {
     // println!("\n{:?}", std::str::from_utf8(&res.stdout[..]));
     // todo 为了更友好，先显示一个头部，表示每一列的意义。
     let header_line = get_netstat_header_line();
-    vec![&*header_line].append(&mut list);
-    for one in list {
-        println!("{:?}", one);
+    let mut total_list = vec![&*header_line];
+    // total_list.append(&mut list);
+    let mut data_list: Vec<Vec<&str>> = vec![
+        get_netstat_header_name_list(),
+    ];
+    for line in list {
+        // 将一行数据切割程一个个 cell
+        let res1: Vec<_> = line.split(" ").filter(|s| s.trim().len() > 0).collect();
+        data_list.push(res1);
+        break;
     }
+    println!("{:?}", data_list);
     // get_process_info(6532);
 }
 
@@ -106,7 +114,7 @@ fn split_output(output_slice: &[u8]) -> Vec<&str> {
 /// 头部：协议  本地地址          外部地址        状态           模板
 fn get_netstat_header_line() ->String {
     let header_name_list = get_netstat_header_name_list();
-    return header_name_list.join("\t");
+    return header_name_list.join("    ");
 }
 
 fn get_netstat_header_name_list() ->Vec<&'static str> {
