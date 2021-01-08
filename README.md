@@ -6,6 +6,28 @@ windows 下的 Linux 风格的命令行工具。
 * kill 关闭进程: `wt kill 23636`
 
 ## preview
+### help 
+* `wt -h`
+
+```
+win-command-tools 0.1.0
+suhanyujie<suhanyujie@qq.com>
+Command tools for windows.
+
+USAGE:
+    win-kill.exe [SUBCOMMAND]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+SUBCOMMANDS:
+    find    子命令：查询tcp服务信息。
+    help    Prints this message or the help of the given subcommand(s)
+    kill    子命令：关闭进程。
+    ps      子命令：查询进程信息。
+```
+
 ### 查看 tcp 服务 find 
 * `wt find 443`
 

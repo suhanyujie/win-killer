@@ -7,10 +7,10 @@ use prettytable::{Cell, Row, Table};
 
 fn main() {
     // 创建命令行应用。
-    let matches = App::new("win-process-killer")
+    let matches = App::new("win-command-tools")
                         .version("0.1.0")
                         .author("suhanyujie<suhanyujie@qq.com>")
-                        .about("Kill one process for windows. ")
+                        .about("Command tools for windows. ")
                         .subcommands(
                             vec![
                                 SubCommand::with_name("ps")
@@ -43,12 +43,6 @@ fn main() {
                                     .help("Set a process flag that called pid. ")
                                 ),
                             ]
-                        )
-                        .arg(Arg::with_name("config")
-                            .short("c")
-                            .long("config")
-                            .value_name("FILE")
-                            .help("Sets a custom config file")
                         )
                         .get_matches();
     // 针对不同命令的处理逻辑
