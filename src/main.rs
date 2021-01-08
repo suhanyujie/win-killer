@@ -13,8 +13,18 @@ fn main() {
                         .about("Kill one process for windows. ")
                         .subcommands(
                             vec![
-                                SubCommand::with_name("find")
+                                SubCommand::with_name("ps")
                                 .about("子命令：查询进程信息。")
+                                .arg(
+                                    Arg::with_name("str")
+                                    // 子命令后的参数索引声明，用索引替代参数名声明。从 1 开始计数。如值为2，则表示命令后，第2个参数为 `str` 对应的值。
+                                    .index(1)
+                                    .long("str")
+                                    .value_name("string")
+                                    .help("Set a string for match. ")
+                                ),
+                                SubCommand::with_name("find")
+                                .about("子命令：查询tcp服务信息。")
                                 .arg(
                                     Arg::with_name("str")
                                     // 子命令后的参数索引声明，用索引替代参数名声明。从 1 开始计数。如值为2，则表示命令后，第2个参数为 `str` 对应的值。
@@ -49,6 +59,11 @@ fn main() {
     } else {
         // 没有匹配上 find 子命令，说明不是 find 子命令，无需做处理。
     }
+    if let Some(find_match) = matches.subcommand_matches("ps") {
+        let needle_str = find_match.value_of("str").unwrap_or("");
+        handle_ps(needle_str);
+        return;
+    }
     if let Some(kill_match) = matches.subcommand_matches("kill") {
         let mut pid_int: usize = 0;
         let pid = kill_match.value_of("pid").unwrap_or("0");
@@ -61,12 +76,8 @@ fn main() {
             panic!("pid 不合法，请输入合法的 pid。")
         }
         handle_kill_one(pid_int);
-    } else {
-        // 没有匹配上 kill 子命令，说明不是 kill 子命令，无需做处理。
+        return
     }
-    
-    // println!("{:?}", data_list);
-    // get_process_info(6532);
 }
 
 /// 关闭进程
@@ -112,6 +123,31 @@ fn handle_find(needle_str: &str) {
         data_list.push(res1);
     }
     render(get_netstat_header_name_list(), data_list);
+}
+
+// 查询进程列表
+fn handle_ps(needle_str: &str) {
+    // tasklist | findstr {someStr}
+    let res = Command::new("powershell")
+        .args(&["tasklist"])
+        .args(&["| findstr "])
+        .arg(needle_str)
+        .output()
+        .expect("exec command tasklist error");
+    let list = split_output(&res.stdout);
+    let mut data_list: Vec<Vec<&str>> = vec![];
+    for line in list {
+        // 将一行数据切割程一个个 cell
+        let res1: Vec<_> = line.split(" ").filter(|s| s.trim().len() > 0).collect();
+        data_list.push(res1);
+    }
+    render(vec![
+        "程序名",
+        "进程id",
+        "会话名",
+        "会话id",
+        "内存占用",
+    ], data_list);
 }
 
 /// 展示列表信息
