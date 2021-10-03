@@ -5,12 +5,15 @@ use std::{process::Command, vec};
 use clap::{Arg, App, SubCommand};
 use prettytable::{Cell, Row, Table};
 
+/// 模仿 Linux 上比较常用的一些命令：
+/// * kill {pid}
+/// * lsof
 fn main() {
     // 创建命令行应用。
     let matches = App::new("win-command-tools")
                         .version("0.1.0")
                         .author("suhanyujie<suhanyujie@qq.com>")
-                        .about("Command tools for windows. ")
+                        .about("win 下的一些命令行使用。如果查看端口占用以及对应的进程 id，可以使用 `netstat ano | findstr 8081`；")
                         .subcommands(
                             vec![
                                 SubCommand::with_name("ps")
@@ -21,7 +24,7 @@ fn main() {
                                     .index(1)
                                     .long("str")
                                     .value_name("string")
-                                    .help("Set a string for match. ")
+                                    .help("通过 str 子命令，匹配对应的进程。")
                                 ),
                                 SubCommand::with_name("find")
                                 .about("子命令：查询tcp服务信息。")
@@ -45,7 +48,9 @@ fn main() {
                             ]
                         )
                         .get_matches();
+
     // 针对不同命令的处理逻辑
+    // 处理 find
     if let Some(find_match) = matches.subcommand_matches("find") {
         let needle_str = find_match.value_of("str").unwrap_or("");
         handle_find(needle_str);
@@ -53,11 +58,15 @@ fn main() {
     } else {
         // 没有匹配上 find 子命令，说明不是 find 子命令，无需做处理。
     }
+
+    // 处理 ps
     if let Some(find_match) = matches.subcommand_matches("ps") {
         let needle_str = find_match.value_of("str").unwrap_or("");
         handle_ps(needle_str);
         return;
     }
+
+    // 处理 kill
     if let Some(kill_match) = matches.subcommand_matches("kill") {
         let mut pid_int: usize = 0;
         let pid = kill_match.value_of("pid").unwrap_or("0");
@@ -93,8 +102,9 @@ fn handle_kill_one(pid: usize) {
     println!("执行结果：{:?}", output_lines);
 }
 
+
+// netstat -ano | findstr 443
 fn handle_find(needle_str: &str) {
-    // netstat -ano | findstr 443
     let res = Command::new("powershell")
         .args(&["netstat"])
         .args(&["-ano | findstr "])
